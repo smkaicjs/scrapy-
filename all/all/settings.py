@@ -91,3 +91,11 @@ mongodb_sheet = '笔趣book'
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+SCHEDULER="scrapy_redis.scheduler.Scheduler"
+DUPEFILTER_CLASS="scrapy_redis.dupefilter.RFPDupeFilter"
+SCHEDULER_PERSIST = True
+REDIS_HOST= '127.0.0.1'
+REDIS_PORT = 6379
+REDIS_password = 123456
+DEPTH_PRIORITY = -1
+

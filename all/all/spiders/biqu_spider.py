@@ -3,11 +3,29 @@ import scrapy
 from all.items import BiquItem
 from scrapy import Request
 from urllib import parse
+from scrapy_redis.spiders import RedisSpider
+'''分布式改造1.将scrapy.Spider变成scrapy_redis.spidres.RedisSpider;或则scrapy.CrwalSpider
+变成scrapy_redis.spiders.RedisCrawlSpider。2.将爬虫中的start_urls删除。
+增加一个redis_key="xxx"
+这个redis_key是为了以后在redis中控制爬虫启动的。爬虫的第一个url，就是
+redis中通过这个发送的。
+3.将request存储在redis中：SCHEDULER="scrapy_redis.scheduler.Scheduler"
+确保所有爬虫共享相同的去重指纹DUPEFILTER_CLASS="scrapy_redis.dupefilter.RFPDupeFilter"
+设置redis为item pipeline：ITEM_PIPELINE={
+'scrapy_redis.pipelines.RedisPipeline':300
+}
+续爬：SCHEDULER_PERSIST = True
+设置连接：REDIS_HOST= '127.0.0.1'
+PORT = 6379
+password = 123456
 
-class BiquSpiderSpider(scrapy.Spider):
+'''
+
+class BiquSpiderSpider(RedisSpider):
     name = 'biqu_spider'
     allowed_domains = ['vipzw.com']
-    start_urls = ['http://www.vipzw.com/map/1.html']
+    # start_urls = ['http://www.vipzw.com/map/1.html']
+    redis_key = 'biqu'
     custom_settings = {'DEFAULT_REQUEST_HEADERS': {
                             'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                             'Accept-Encoding':'gzip, deflate',
@@ -68,7 +86,7 @@ class BiquSpiderSpider(scrapy.Spider):
         item = BiquItem()
         content = response.xpath("//div[@id='content']//text()").extract()
         content = ''.join(content).replace(' ','').replace('\n','')
-        item['story_content'] = content
+        item['story_content'] = content.replace('\r','')
         page_name = response.xpath("//div[@class='bookname']/h1/text()").extract()
         item['story_page'] = page_name
         #翻页
